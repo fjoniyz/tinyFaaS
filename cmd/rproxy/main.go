@@ -15,6 +15,40 @@ import (
 	"github.com/OpenFogStack/tinyFaaS/pkg/rproxy"
 )
 
+func register(port string) {
+	url := "http://localhost:90/register" // Replace with your target URL
+
+	// Define the JSON data to be sent
+	jsonData := []byte(fmt.Sprintf(`{"http-port" %s}`, port))
+	fmt.Println("Body: ", bytes.NewBuffer(jsonData))
+
+	// Create a new request with the POST method and JSON data
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	buffer := new(bytes.Buffer)
+	_, err = buffer.ReadFrom(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return
+	}
+	fmt.Println("Response Body:", buffer.String())
+}
+
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.SetPrefix("rproxy: ")
@@ -56,6 +90,7 @@ func main() {
 	}
 	// HTTP
 	if listenAddr, ok := listenAddrs["http"]; ok {
+		register(listenAddr)
 		log.Printf("starting http server on %s", listenAddr)
 		go tfhttp.Start(r, listenAddr)
 	}

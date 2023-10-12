@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -24,6 +25,30 @@ type RProxy struct {
 	hl    sync.RWMutex
 }
 
+// Leader node keeps track of which functions are available in which node
+func update_list_on_leader(name string, port string) {
+	jsonBody := fmt.Sprintf(`{"http-port": %s, "function-name": %s}`, port, name)
+	log.Println("JSON body for updating function: ", jsonBody)
+	response, err := http.Post(fmt.Sprintf("http://localhost:90/add"), "json", strings.NewReader(jsonBody))
+	if err != nil {
+		log.Print("Error: ", err)
+		return
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return
+	}
+
+	// Print the response status and body
+	fmt.Println("Response Status:", response.Status)
+	fmt.Println("Response Body:", string(body))
+	return
+}
+
 func New() *RProxy {
 	return &RProxy{
 		hosts: make(map[string][]string),
@@ -34,6 +59,8 @@ func (r *RProxy) Add(name string, ips []string) error {
 	if len(ips) == 0 {
 		return fmt.Errorf("no ips given")
 	}
+
+	update_list_on_leader(name, "8000")
 
 	r.hl.Lock()
 	defer r.hl.Unlock()
