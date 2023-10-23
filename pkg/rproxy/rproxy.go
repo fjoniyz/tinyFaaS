@@ -26,10 +26,10 @@ type RProxy struct {
 }
 
 // Leader node keeps track of which functions are available in which node
-func update_list_on_leader(name string, port string) {
+func update_list_on_leader(name string, port string, function string) {
 	jsonBody := fmt.Sprintf(`{"http-port": %s, "function-name": %s}`, port, name)
 	log.Println("JSON body for updating function: ", jsonBody)
-	response, err := http.Post(fmt.Sprintf("http://localhost:90/add"), "json", strings.NewReader(jsonBody))
+	response, err := http.Post(fmt.Sprintf("http://localhost:90/"+function), "json", strings.NewReader(jsonBody))
 	if err != nil {
 		log.Print("Error: ", err)
 		return
@@ -60,7 +60,7 @@ func (r *RProxy) Add(name string, ips []string) error {
 		return fmt.Errorf("no ips given")
 	}
 
-	update_list_on_leader(name, "8000")
+	update_list_on_leader(name, "8000", "add")
 
 	r.hl.Lock()
 	defer r.hl.Unlock()
@@ -77,6 +77,8 @@ func (r *RProxy) Add(name string, ips []string) error {
 func (r *RProxy) Del(name string) error {
 	r.hl.Lock()
 	defer r.hl.Unlock()
+
+	update_list_on_leader(name, "8000", "deleteFunction")
 
 	if _, ok := r.hosts[name]; !ok {
 		return fmt.Errorf("function not found")
