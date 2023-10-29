@@ -92,6 +92,10 @@ func (r *RProxy) Call(name string, payload []byte, async bool) (Status, []byte) 
 
 	handler, ok := r.hosts[name]
 
+	if name == "health" {
+		return StatusOK, nil
+	}
+
 	if !ok {
 		log.Printf("function not found: %s", name)
 		return StatusNotFound, nil
