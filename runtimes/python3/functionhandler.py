@@ -3,6 +3,7 @@
 import typing
 import http.server
 import socketserver
+import os
 
 if __name__ == "__main__":
     try:
@@ -42,6 +43,6 @@ if __name__ == "__main__":
                 self.end_headers()
                 self.wfile.write(str(e).encode("utf-8"))
                 return
-
-    with socketserver.TCPServer(("", 8000), tinyFaaSFNHandler) as httpd:
+    env_variable_value = os.environ.get('HTTP_PORT')
+    with socketserver.TCPServer(("", int(env_variable_value)), tinyFaaSFNHandler) as httpd:
         httpd.serve_forever()

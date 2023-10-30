@@ -10,4 +10,6 @@ then
     exit
 fi
 
-curl http://localhost:8080/delete --data "{\"name\": \"$1\"}"
+env_variable_value="$CONFIG_PORT"
+
+curl "http://localhost:$env_variable_value/delete" --data "{\"name\": \"$1\"}"

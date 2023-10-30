@@ -19,8 +19,6 @@ import (
 )
 
 const (
-	ConfigPort          = 8080
-	RProxyConfigPort    = 8081
 	RProxyListenAddress = ""
 	RProxyBin           = "./rproxy"
 )
@@ -33,11 +31,28 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.SetPrefix("manager: ")
+	http_port, err_http := strconv.Atoi(os.Getenv("HTTP_PORT"))
+	coap_port, err_coap := strconv.Atoi(os.Getenv("COAP_PORT"))
+	grpc_port, err_grpc := strconv.Atoi(os.Getenv("GRPC_PORT"))
+	config_port, err_config := strconv.Atoi(os.Getenv("CONFIG_PORT"))
+	rproxy_config_port, err_rproxy := strconv.Atoi(os.Getenv("RPROXY_PORT"))
+
+	if err_http != nil {
+		panic(err_http)
+	} else if err_coap != nil {
+		panic(err_coap)
+	} else if err_grpc != nil {
+		panic(err_grpc)
+	} else if err_config != nil {
+		panic(err_config)
+	} else if err_rproxy != nil {
+		panic(err_rproxy)
+	}
 
 	ports := map[string]int{
-		"coap": 5683,
-		"http": 8000,
-		"grpc": 9000,
+		"coap": coap_port,
+		"http": http_port,
+		"grpc": grpc_port,
 	}
 
 	for p := range ports {
@@ -89,11 +104,11 @@ func main() {
 		id,
 		RProxyListenAddress,
 		ports,
-		RProxyConfigPort,
+		rproxy_config_port,
 		tfBackend,
 	)
 
-	rproxyArgs := []string{fmt.Sprintf("%s:%d", RProxyListenAddress, RProxyConfigPort)}
+	rproxyArgs := []string{fmt.Sprintf("%s:%d", RProxyListenAddress, rproxy_config_port)}
 
 	for prot, port := range ports {
 		rproxyArgs = append(rproxyArgs, fmt.Sprintf("%s:%s:%d", prot, RProxyListenAddress, port))
@@ -177,7 +192,7 @@ func main() {
 
 	// start server
 	log.Println("starting HTTP server")
-	addr := fmt.Sprintf(":%d", ConfigPort)
+	addr := fmt.Sprintf(":%d", config_port)
 	err = http.ListenAndServe(addr, r)
 	if err != nil {
 		log.Fatal(err)

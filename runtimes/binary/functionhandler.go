@@ -6,11 +6,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 )
 
 func main() {
-	port := ":8000"
+	port := ":" + os.Getenv("HTTP_PORT")
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

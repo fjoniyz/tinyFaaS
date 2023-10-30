@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 )
@@ -25,7 +26,6 @@ type RProxy struct {
 	hl    sync.RWMutex
 }
 
-// Leader node keeps track of which functions are available in which node
 func update_list_on_leader(name string, port string, function string) {
 	jsonBody := fmt.Sprintf(`{"http-port": %s, "function-name": %s}`, port, name)
 	log.Println("JSON body for updating function: ", jsonBody)
@@ -60,7 +60,9 @@ func (r *RProxy) Add(name string, ips []string) error {
 		return fmt.Errorf("no ips given")
 	}
 
-	update_list_on_leader(name, "8000", "add")
+	http_port := os.Getenv("HTTP_PORT")
+
+	update_list_on_leader(name, http_port, "add")
 
 	r.hl.Lock()
 	defer r.hl.Unlock()
@@ -78,7 +80,9 @@ func (r *RProxy) Del(name string) error {
 	r.hl.Lock()
 	defer r.hl.Unlock()
 
-	update_list_on_leader(name, "8000", "deleteFunction")
+	http_port := os.Getenv("HTTP_PORT")
+
+	update_list_on_leader(name, http_port, "deleteFunction")
 
 	if _, ok := r.hosts[name]; !ok {
 		return fmt.Errorf("function not found")
@@ -91,6 +95,8 @@ func (r *RProxy) Del(name string) error {
 func (r *RProxy) Call(name string, payload []byte, async bool) (Status, []byte) {
 
 	handler, ok := r.hosts[name]
+
+	http_port := os.Getenv("HTTP_PORT")
 
 	if name == "health" {
 		return StatusOK, nil
@@ -112,7 +118,7 @@ func (r *RProxy) Call(name string, payload []byte, async bool) (Status, []byte) 
 	if async {
 		log.Printf("async request accepted")
 		go func() {
-			resp, err := http.Post(fmt.Sprintf("http://%s:8000/fn", h), "application/binary", bytes.NewBuffer(payload))
+			resp, err := http.Post(fmt.Sprintf("http://%s:"+http_port+"/fn", h), "application/binary", bytes.NewBuffer(payload))
 
 			if err != nil {
 				return
@@ -127,7 +133,7 @@ func (r *RProxy) Call(name string, payload []byte, async bool) (Status, []byte) 
 
 	// call function and return results
 	log.Printf("sync request starting")
-	resp, err := http.Post(fmt.Sprintf("http://%s:8000/fn", h), "application/binary", bytes.NewBuffer(payload))
+	resp, err := http.Post(fmt.Sprintf("http://%s:"+http_port+"/fn", h), "application/binary", bytes.NewBuffer(payload))
 
 	if err != nil {
 		log.Print(err)

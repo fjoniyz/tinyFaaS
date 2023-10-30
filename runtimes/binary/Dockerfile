@@ -6,7 +6,11 @@ RUN GO111MODULE=off CGO_ENABLED=0 go build -o handler.bin .
 
 FROM alpine
 
-EXPOSE 8000
+ARG HTTP_PORT
+
+ENV PORT=$HTTP_PORT
+
+EXPOSE $PORT
 
 # Create app directory
 WORKDIR /usr/src/app

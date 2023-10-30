@@ -3,17 +3,11 @@ process.chdir("fn");
 
 const handler = require("fn");
 const express = require("express");
-const bodyParser = require("body-parser")
 const app = express();
-
-app.use(bodyParser.text({
-    type: function(req) {
-        return 'text';
-    }
-}));
+const http_port = parseInt(process.env.HTTP_PORT);
 
 app.all("/health", (req, res) => {
   return res.send("OK");
 });
 app.all("/fn", handler);
-app.listen(8000);
+app.listen(http_port);

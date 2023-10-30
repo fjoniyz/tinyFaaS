@@ -276,7 +276,9 @@ func (dh *dockerHandler) Start() error {
 				Timeout: 3 * time.Second,
 			}
 
-			resp, err := client.Get("http://" + ip + ":8000/health")
+			http_port := os.Getenv("HTTP_PORT")
+
+			resp, err := client.Get("http://" + ip + ":" + http_port + "/health")
 			if err != nil {
 				log.Println(err)
 				log.Println("retrying in 1 second")
