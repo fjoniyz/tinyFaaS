@@ -184,3 +184,7 @@ For example, to use `6000` as the port for the CoAP and deactivate GRPC, run the
 ```bash
 docker run --env COAP_PORT=6000 --env GRPC_PORT=-1 -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 --name tinyfaas-mgmt -d tinyfaas-mgmt tinyfaas-mgmt
 ```
+
+### Running multiple tinyFaaS instances
+
+In order to run multiple tinyFaaS instances one needs to run the `./script.sh` which is in the root folder. This will set the environment variables and will run 4 tinyFaaS instances by default locally. The caveat is, that the `upload.sh` will not work for any other instance other than the last one started. In order to upload functions to the other instances, one needs to use curl, Postman or some other HTTP client.
