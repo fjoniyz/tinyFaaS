@@ -26,4 +26,3 @@ for i in {1..4}; do
     export CONFIG_PORT
     export RPROXY_PORT
 done
-
