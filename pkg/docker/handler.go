@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"sync"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
 )
 
@@ -171,6 +173,16 @@ func (db *DockerBackend) Create(name string, env string, threads int, filedir st
 		e = append(e, fmt.Sprintf("%s=%s", k, v))
 	}
 
+	httpPort := os.Getenv("HTTP_PORT")
+	if httpPort == "" {
+		log.Fatal("HTTP_PORT environment variable not set")
+	}
+
+	// Convert the port to integer
+	port, err := strconv.Atoi(httpPort)
+	if err != nil {
+		log.Fatal("Invalid HTTP_PORT:", err)
+	}
 	// create containers
 	// docker run -d --network <network> --name <container> <image>
 	for i := 0; i < dh.threads; i++ {
@@ -186,6 +198,14 @@ func (db *DockerBackend) Create(name string, env string, threads int, filedir st
 			},
 			&container.HostConfig{
 				NetworkMode: container.NetworkMode(dh.uniqueName),
+				PortBindings: nat.PortMap{
+					"80/tcp": []nat.PortBinding{
+						{
+							HostIP:   "0.0.0.0",
+							HostPort: strconv.Itoa(port),
+						},
+					},
+				},
 			},
 			nil,
 			nil,

@@ -11,7 +11,8 @@ export RPROXY_PORT=3200
 for i in {1..4}; do
     echo "Iteration $i:"
     make &
-
+    sleep 25
+    ./scripts/upload.sh "./test/fns/sieve-of-eratosthenes" "sieve" "nodejs" 1
     # Increment the PORT variables
     ((HTTP_PORT++))
     ((GRPC_PORT++))

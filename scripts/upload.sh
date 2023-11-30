@@ -22,6 +22,8 @@ then
     exit
 fi
 
+node runtimes/nodejs/portReader.js
+
 pushd "$1" >/dev/null || exit
 
 env_variable_value="$CONFIG_PORT"
